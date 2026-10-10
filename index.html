@@ -65,23 +65,25 @@
   <!-- Librería para escanear con la cámara web -->
   <script src="https://unpkg.com/html5-qrcode"></script>
 
-  <!-- Script conectado a Firebase Realtime Database -->
+  <!-- Script conectado a Firebase Realtime Database con tus credenciales reales -->
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
     import { getDatabase, ref, set, get, onValue, push, remove } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
+    import { getAnalytics } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-analytics.js";
 
-    // 🔑 Reemplaza esto con los datos de tu proyecto gratuito de Firebase
     const firebaseConfig = {
-      apiKey: "TU_API_KEY",
-      authDomain: "tu-proyecto.firebaseapp.com",
-      databaseURL: "https://tu-proyecto-default-rtdb.firebaseio.com",
-      projectId: "tu-proyecto",
-      storageBucket: "tu-proyecto.appspot.com",
-      messagingSenderId: "TU_MESSAGING_SENDER_ID",
-      appId: "TU_APP_ID"
+      apiKey: "AIzaSyAAscIj3GJsJq00-0baotTcDZos0aO2YPY",
+      authDomain: "asistencia-colegio-fd81a.firebaseapp.com",
+      databaseURL: "https://asistencia-colegio-fd81a-default-rtdb.firebaseio.com",
+      projectId: "asistencia-colegio-fd81a",
+      storageBucket: "asistencia-colegio-fd81a.firebasestorage.app",
+      messagingSenderId: "906325438510",
+      appId: "1:906325438510:web:025bcd06ea30cebca7efbf",
+      measurementId: "G-208HH1K85W"
     };
 
     const app = initializeApp(firebaseConfig);
+    const analytics = getAnalytics(app);
     const db = getDatabase(app);
 
     const estudiantesBase = [
@@ -128,21 +130,18 @@
     const refEstudiantes = ref(db, 'estudiantes');
     const refAsistencias = ref(db, 'asistencias');
 
-    // Cargar los 35 estudiantes iniciales si la base de datos está vacía
     get(refEstudiantes).then((snapshot) => {
       if (!snapshot.exists()) {
         set(refEstudiantes, estudiantesBase);
       }
     });
 
-    // Escuchar estudiantes en tiempo real
     onValue(refEstudiantes, (snapshot) => {
       const data = snapshot.val();
       estudiantesCache = data ? (Array.isArray(data) ? data : Object.values(data)) : [];
       pintarEstudiantes();
     });
 
-    // Escuchar asistencias en tiempo real desde cualquier celular o dispositivo
     onValue(refAsistencias, (snapshot) => {
       const data = snapshot.val();
       asistenciasCache = data ? Object.values(data) : [];
