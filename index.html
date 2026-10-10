@@ -3,20 +3,22 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Escáner Móvil de Asistencia</title>
+  <title>Asistencia Institucional</title>
   
   <!-- Enlace a tu archivo CSS externo -->
   <link rel="stylesheet" href="css/estilos.css">
 </head>
 <body>
   <header>
-    <h1>Escáner Móvil</h1>
+    <h1>Módulo de Asistencia Institucional</h1>
   </header>
 
   <main>
+    <!-- LECTOR DE QR / CÁMARA -->
     <section class="card" id="lector">
-      <h2>Lector de QR (Celular)</h2>
+      <h2>Lector de QR (Cámara)</h2>
       
+      <!-- Visor de la cámara personalizado -->
       <div id="reader" style="width: 100%; max-width: 320px; margin: 0 auto 15px auto; border-radius: 10px; overflow: hidden; background: #f0f0f0; min-height: 200px; display: flex; align-items: center; justify-content: center;"></div>
       
       <div style="text-align: center; margin-bottom: 15px;">
@@ -27,17 +29,48 @@
       <input type="text" id="inputLector" placeholder="Pase el carnet o escriba aquí..." autofocus autocomplete="off">
       <div id="mensaje" class="mensaje"></div>
     </section>
+
+    <!-- ESTUDIANTES -->
+    <section class="card">
+      <h2>Estudiantes</h2>
+      <div class="form-fila">
+        <input id="codigo" placeholder="Código (ej. EST-0001)">
+        <input id="nombre" placeholder="Nombre completo">
+        <input id="grado" placeholder="Grado/Curso">
+        <button type="button" id="btnAgregar" onclick="agregarEstudiante()">Agregar</button>
+      </div>
+      <table>
+        <thead>
+          <tr><th>Código</th><th>Nombre</th><th>Grado</th><th>QR</th><th>Acción</th></tr>
+        </thead>
+        <tbody id="tablaEstudiantes"></tbody>
+      </table>
+    </section>
+
+    <!-- ASISTENCIA -->
+    <section class="card">
+      <h2>Historial de asistencia</h2>
+      <label>Fecha: <input type="date" id="filtroFecha"></label>
+      <table>
+        <thead>
+          <tr><th>Código</th><th>Nombre</th><th>Fecha</th><th>Hora</th><th>Acción</th></tr>
+        </thead>
+        <tbody id="tablaAsistencia"></tbody>
+      </table>
+    </section>
   </main>
 
+  <!-- Librería para generar QR -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
   <!-- Librería para escanear con la cámara web -->
   <script src="https://unpkg.com/html5-qrcode"></script>
 
-  <!-- Script del Escáner conectado a Firebase -->
+  <!-- Script conectado a Firebase Realtime Database -->
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-    import { getDatabase, ref, get, set, push } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
+    import { getDatabase, ref, set, get, onValue, push, remove } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
 
-    // 🔑 CONFIGURACIÓN DE FIREBASE (Debe ser EXACTAMENTE LA MISMA que pusiste en el index.html)
+    // 🔑 Reemplaza esto con los datos de tu proyecto gratuito de Firebase
     const firebaseConfig = {
       apiKey: "TU_API_KEY",
       authDomain: "tu-proyecto.firebaseapp.com",
@@ -51,12 +84,70 @@
     const app = initializeApp(firebaseConfig);
     const db = getDatabase(app);
 
-    const inputLector = document.getElementById("inputLector");
-    const mensaje = document.getElementById("mensaje");
+    const estudiantesBase = [
+      { codigo: "EST-0001", nombre: "Santiago Pérez", grado: "10-A" },
+      { codigo: "EST-0002", nombre: "Valentina Gómez", grado: "10-A" },
+      { codigo: "EST-0003", nombre: "Mateo Rodríguez", grado: "10-A" },
+      { codigo: "EST-0004", nombre: "Sofía Martínez", grado: "10-A" },
+      { codigo: "EST-0005", nombre: "Alejandro López", grado: "10-A" },
+      { codigo: "EST-0006", nombre: "Luciana García", grado: "10-B" },
+      { codigo: "EST-0007", nombre: "Daniel Torres", grado: "10-B" },
+      { codigo: "EST-0008", nombre: "Isabella Ramírez", grado: "10-B" },
+      { codigo: "EST-0009", nombre: "Samuel Flores", grado: "10-B" },
+      { codigo: "EST-0010", nombre: "Mariana Benítez", grado: "10-B" },
+      { codigo: "EST-0011", nombre: "Lucas Morales", grado: "11-A" },
+      { codigo: "EST-0012", nombre: "Victoria Castro", grado: "11-A" },
+      { codigo: "EST-0013", nombre: "David Silva", grado: "11-A" },
+      { codigo: "EST-0014", nombre: "Camila Rojas", grado: "11-A" },
+      { codigo: "EST-0015", nombre: "Gabriel Mendoza", grado: "11-A" },
+      { codigo: "EST-0016", nombre: "Martina Ortiz", grado: "11-B" },
+      { codigo: "EST-0017", nombre: "Nicolás Vargas", grado: "11-B" },
+      { codigo: "EST-0018", nombre: "Antonella Herrera", grado: "11-B" },
+      { codigo: "EST-0019", nombre: "Emiliano Medina", grado: "11-B" },
+      { codigo: "EST-0020", nombre: "Renata Guzmán", grado: "11-B" },
+      { codigo: "EST-0021", nombre: "Joaquín Navarro", grado: "9-A" },
+      { codigo: "EST-0022", nombre: "Catalina Ríos", grado: "9-A" },
+      { codigo: "EST-0023", nombre: "Thiago Romero", grado: "9-A" },
+      { codigo: "EST-0024", nombre: "Elena Castillo", grado: "9-A" },
+      { codigo: "EST-0025", nombre: "Agustín Vega", grado: "9-A" },
+      { codigo: "EST-0026", nombre: "Julieta Silva", grado: "9-B" },
+      { codigo: "EST-0027", nombre: "Felipe Paredes", grado: "9-B" },
+      { codigo: "EST-0028", nombre: "Regina Campos", grado: "9-B" },
+      { codigo: "EST-0029", nombre: "Vicente Acuña", grado: "9-B" },
+      { codigo: "EST-0030", nombre: "Emilia Fuentes", grado: "9-B" },
+      { codigo: "EST-0031", nombre: "Maximiliano Cárdenas", grado: "8-A" },
+      { codigo: "EST-0032", nombre: "Amanda Molina", grado: "8-A" },
+      { codigo: "EST-0033", nombre: "Dante Soto", grado: "8-A" },
+      { codigo: "EST-0034", nombre: "Blanca Espinoza", grado: "8-A" },
+      { codigo: "EST-0035", nombre: "Bruno Lagos", grado: "8-A" }
+    ];
 
-    let html5QrCode = null;
-    let camaraActiva = false;
-    let escaneando = false;
+    let estudiantesCache = [];
+    let asistenciasCache = [];
+
+    const refEstudiantes = ref(db, 'estudiantes');
+    const refAsistencias = ref(db, 'asistencias');
+
+    // Cargar los 35 estudiantes iniciales si la base de datos está vacía
+    get(refEstudiantes).then((snapshot) => {
+      if (!snapshot.exists()) {
+        set(refEstudiantes, estudiantesBase);
+      }
+    });
+
+    // Escuchar estudiantes en tiempo real
+    onValue(refEstudiantes, (snapshot) => {
+      const data = snapshot.val();
+      estudiantesCache = data ? (Array.isArray(data) ? data : Object.values(data)) : [];
+      pintarEstudiantes();
+    });
+
+    // Escuchar asistencias en tiempo real desde cualquier celular o dispositivo
+    onValue(refAsistencias, (snapshot) => {
+      const data = snapshot.val();
+      asistenciasCache = data ? Object.values(data) : [];
+      pintarAsistencia();
+    });
 
     function fechaHoy() {
       const d = new Date();
@@ -66,36 +157,124 @@
       return new Date().toLocaleTimeString("es-CO", { hour12: false });
     }
 
+    const inputLector = document.getElementById("inputLector");
+    const mensaje = document.getElementById("mensaje");
+    const filtroFecha = document.getElementById("filtroFecha");
+    filtroFecha.value = fechaHoy();
+
+    let html5QrCode = null;
+    let camaraActiva = false;
+    let escaneando = false;
+
     function mostrarMensaje(texto, tipo) {
       mensaje.textContent = texto;
       mensaje.className = `mensaje ${tipo}`;
       setTimeout(() => (mensaje.className = "mensaje"), 3500);
     }
 
-    // Registrar asistencia directo a Firebase para que la PC lo reciba al instante
-    window.registrarAsistencia = async function(codigo) {
-      const refEstudiantes = ref(db, 'estudiantes');
-      const snapEstudiantes = await get(refEstudiantes);
-      const estudiantes = snapEstudiantes.val() ? Object.values(snapEstudiantes.val()) : [];
+    window.agregarEstudiante = function() {
+      const codigo = document.getElementById("codigo").value.trim().toUpperCase();
+      const nombre = document.getElementById("nombre").value.trim();
+      const grado = document.getElementById("grado").value.trim();
 
-      const est = estudiantes.find(e => e.codigo === codigo);
+      if (!codigo || !nombre) {
+        alert("Código y nombre son obligatorios.");
+        return;
+      }
+
+      if (estudiantesCache.some(e => e.codigo === codigo)) {
+        alert("Ese código ya existe.");
+        return;
+      }
+
+      estudiantesCache.push({ codigo, nombre, grado });
+      set(refEstudiantes, estudiantesCache);
+
+      document.getElementById("codigo").value = "";
+      document.getElementById("nombre").value = "";
+      document.getElementById("grado").value = "";
+      inputLector.focus();
+    }
+
+    window.eliminarEstudiante = function(codigo) {
+      const nuevaLista = estudiantesCache.filter(e => e.codigo !== codigo);
+      set(refEstudiantes, nuevaLista);
+    }
+
+    function pintarEstudiantes() {
+      const tbody = document.getElementById("tablaEstudiantes");
+      if (!tbody) return;
+      tbody.innerHTML = "";
+
+      estudiantesCache.forEach(est => {
+        const fila = document.createElement("tr");
+        fila.innerHTML = `
+          <td>${est.codigo}</td>
+          <td>${est.nombre}</td>
+          <td>${est.grado}</td>
+          <td><div class="qr-mini" id="qr-${est.codigo}"></div></td>
+          <td><button type="button" class="btn-eliminar" onclick="eliminarEstudiante('${est.codigo}')">Eliminar</button></td>`;
+        tbody.appendChild(fila);
+
+        if (typeof QRCode !== "undefined") {
+          try {
+            new QRCode(document.getElementById(`qr-${est.codigo}`), {
+              text: est.codigo,
+              width: 56,
+              height: 56
+            });
+          } catch(e) {}
+        }
+      });
+    }
+
+    window.registrarAsistencia = function(codigo) {
+      const est = estudiantesCache.find(e => e.codigo === codigo);
       if (!est) return mostrarMensaje(`Código no reconocido: ${codigo}`, "error");
 
-      const refAsistencias = ref(db, 'asistencias');
-      const snapAsistencias = await get(refAsistencias);
-      const asistenciasObj = snapAsistencias.val() || {};
-      const listaAsistencias = Object.values(asistenciasObj);
       const fecha = fechaHoy();
 
-      if (listaAsistencias.some(a => a.codigo === codigo && a.fecha === fecha)) {
+      if (asistenciasCache.some(a => a.codigo === codigo && a.fecha === fecha)) {
         return mostrarMensaje(`${est.nombre} ya registró su ingreso hoy.`, "aviso");
       }
 
       const hora = horaAhora();
       const nuevaAsistenciaRef = push(refAsistencias);
-      await set(nuevaAsistenciaRef, { codigo, nombre: est.nombre, fecha, hora });
+      set(nuevaAsistenciaRef, { codigo, nombre: est.nombre, fecha, hora });
 
       mostrarMensaje(`✔ ${est.nombre} — ingreso registrado a las ${hora}`, "ok");
+    }
+
+    window.eliminarAsistencia = function(codigo, fecha, hora) {
+      get(refAsistencias).then((snapshot) => {
+        if (snapshot.exists()) {
+          snapshot.forEach((childSnapshot) => {
+            const val = childSnapshot.val();
+            if (val.codigo === codigo && val.fecha === fecha && val.hora === hora) {
+              remove(ref(db, `asistencias/${childSnapshot.key}`));
+            }
+          });
+        }
+      });
+    }
+
+    window.pintarAsistencia = function() {
+      const tbody = document.getElementById("tablaAsistencia");
+      if (!tbody) return;
+      tbody.innerHTML = "";
+      
+      asistenciasCache
+        .filter(a => a.fecha === filtroFecha.value)
+        .forEach(a => {
+          tbody.innerHTML += `
+            <tr>
+              <td>${a.codigo}</td>
+              <td>${a.nombre}</td>
+              <td>${a.fecha}</td>
+              <td>${a.hora}</td>
+              <td><button type="button" class="btn-eliminar" onclick="eliminarAsistencia('${a.codigo}', '${a.fecha}', '${a.hora}')">Eliminar</button></td>
+            </tr>`;
+        });
     }
 
     window.toggleCamara = function() {
@@ -135,11 +314,22 @@
       }
     }
 
+    filtroFecha.addEventListener("change", () => {
+      pintarAsistencia();
+      inputLector.focus();
+    });
+
     inputLector.addEventListener("keydown", (e) => {
       if (e.key === "Enter") {
         const codigo = inputLector.value.trim().toUpperCase();
         inputLector.value = "";
         if (codigo) registrarAsistencia(codigo);
+      }
+    });
+
+    document.addEventListener("click", (e) => {
+      if (!["INPUT", "BUTTON", "LABEL"].includes(e.target.tagName)) {
+        inputLector.focus();
       }
     });
 
