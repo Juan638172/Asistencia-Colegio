@@ -66,8 +66,60 @@
   <script src="https://unpkg.com/html5-qrcode"></script>
 
   <script>
-    // ---------- Almacenamiento ----------
-    const leer = (clave) => JSON.parse(localStorage.getItem(clave) || "[]");
+    // ---------- Lista Base de 35 Estudiantes Predeterminados ----------
+    const estudiantesBase = [
+      { codigo: "EST-0001", nombre: "Santiago Pérez", grado: "10-A" },
+      { codigo: "EST-0002", nombre: "Valentina Gómez", grado: "10-A" },
+      { codigo: "EST-0003", nombre: "Mateo Rodríguez", grado: "10-A" },
+      { codigo: "EST-0004", nombre: "Sofía Martínez", grado: "10-A" },
+      { codigo: "EST-0005", nombre: "Alejandro López", grado: "10-A" },
+      { codigo: "EST-0006", nombre: "Luciana García", grado: "10-B" },
+      { codigo: "EST-0007", nombre: "Daniel Torres", grado: "10-B" },
+      { codigo: "EST-0008", nombre: "Isabella Ramírez", grado: "10-B" },
+      { codigo: "EST-0009", nombre: "Samuel Flores", grado: "10-B" },
+      { codigo: "EST-0010", nombre: "Mariana Benítez", grado: "10-B" },
+      { codigo: "EST-0011", nombre: "Lucas Morales", grado: "11-A" },
+      { codigo: "EST-0012", nombre: "Victoria Castro", grado: "11-A" },
+      { codigo: "EST-0013", nombre: "David Silva", grado: "11-A" },
+      { codigo: "EST-0014", nombre: "Camila Rojas", grado: "11-A" },
+      { codigo: "EST-0015", nombre: "Gabriel Mendoza", grado: "11-A" },
+      { codigo: "EST-0016", nombre: "Martina Ortiz", grado: "11-B" },
+      { codigo: "EST-0017", nombre: "Nicolás Vargas", grado: "11-B" },
+      { codigo: "EST-0018", nombre: "Antonella Herrera", grado: "11-B" },
+      { codigo: "EST-0019", nombre: "Emiliano Medina", grado: "11-B" },
+      { codigo: "EST-0020", nombre: "Renata Guzmán", grado: "11-B" },
+      { codigo: "EST-0021", nombre: "Joaquín Navarro", grado: "9-A" },
+      { codigo: "EST-0022", nombre: "Catalina Ríos", grado: "9-A" },
+      { codigo: "EST-0023", nombre: "Thiago Romero", grado: "9-A" },
+      { codigo: "EST-0024", nombre: "Elena Castillo", grado: "9-A" },
+      { codigo: "EST-0025", nombre: "Agustín Vega", grado: "9-A" },
+      { codigo: "EST-0026", nombre: "Julieta Silva", grado: "9-B" },
+      { codigo: "EST-0027", nombre: "Felipe Paredes", grado: "9-B" },
+      { codigo: "EST-0028", nombre: "Regina Campos", grado: "9-B" },
+      { codigo: "EST-0029", nombre: "Vicente Acuña", grado: "9-B" },
+      { codigo: "EST-0030", nombre: "Emilia Fuentes", grado: "9-B" },
+      { codigo: "EST-0031", nombre: "Maximiliano Cárdenas", grado: "8-A" },
+      { codigo: "EST-0032", nombre: "Amanda Molina", grado: "8-A" },
+      { codigo: "EST-0033", nombre: "Dante Soto", grado: "8-A" },
+      { codigo: "EST-0034", nombre: "Blanca Espinoza", grado: "8-A" },
+      { codigo: "EST-0035", nombre: "Bruno Lagos", grado: "8-A" }
+    ];
+
+    // ---------- Almacenamiento con Carga Inicial Automática ----------
+    function leerEstudiantesIniciales() {
+      const guardados = localStorage.getItem("estudiantes");
+      if (!guardados) {
+        localStorage.setItem("estudiantes", JSON.stringify(estudiantesBase));
+        return estudiantesBase;
+      }
+      return JSON.parse(guardados);
+    }
+
+    const leer = (clave) => {
+      if (clave === "estudiantes") return leerEstudiantesIniciales();
+      return JSON.parse(localStorage.getItem(clave) || "[]");
+    };
+
     const guardar = (clave, datos) => localStorage.setItem(clave, JSON.stringify(datos));
 
     // ---------- Utilidades ----------
@@ -224,7 +276,7 @@
           camaraActiva = true;
           btn.textContent = "Detener Cámara";
         }).catch(err => {
-          mostrarMensaje("No se pudo acceder a la cámara. Revisa los permisos.", "error");
+          mostrarMensaje("No se pudo acceder à la cámara. Revisa los permisos.", "error");
         });
 
       } else {
