@@ -153,7 +153,7 @@
       return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}-${String(d.getDate()).padStart(2,"0")}`;
     }
     function horaAhora() {
-      return new Date().toLocaleTimeString("es-CO", { hour12: false });
+      return new Date().toLocaleTimeString("es-CO", { hour12: true });
     }
 
     const inputLector = document.getElementById("inputLector");
