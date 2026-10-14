@@ -5,7 +5,6 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Asistencia Institucional</title>
   
-  <!-- Enlace a tu archivo CSS externo -->
   <link rel="stylesheet" href="css/estilos.css">
 </head>
 <body>
@@ -34,7 +33,7 @@
     <section class="card">
       <h2>Estudiantes</h2>
       <div class="form-fila">
-        <input id="codigo" placeholder="Código (ej. EST-0001)">
+        <input id="codigo" placeholder="Código (ej. 1201214080)">
         <input id="nombre" placeholder="Nombre completo">
         <input id="grado" placeholder="Grado/Curso">
         <button type="button" id="btnAgregar" onclick="agregarEstudiante()">Agregar</button>
@@ -60,12 +59,9 @@
     </section>
   </main>
 
-  <!-- Librería para generar QR -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
-  <!-- Librería para escanear con la cámara web -->
   <script src="https://unpkg.com/html5-qrcode"></script>
 
-  <!-- Script conectado a Firebase Realtime Database con tus credenciales reales -->
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
     import { getDatabase, ref, set, get, onValue, push, remove } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
@@ -86,42 +82,13 @@
     const analytics = getAnalytics(app);
     const db = getDatabase(app);
 
+    // Lista base de estudiantes actualizada
     const estudiantesBase = [
-      { codigo: "EST-0001", nombre: "Santiago Pérez", grado: "10-A" },
-      { codigo: "EST-0002", nombre: "Valentina Gómez", grado: "10-A" },
-      { codigo: "EST-0003", nombre: "Mateo Rodríguez", grado: "10-A" },
-      { codigo: "EST-0004", nombre: "Sofía Martínez", grado: "10-A" },
-      { codigo: "EST-0005", nombre: "Alejandro López", grado: "10-A" },
-      { codigo: "EST-0006", nombre: "Luciana García", grado: "10-B" },
-      { codigo: "EST-0007", nombre: "Daniel Torres", grado: "10-B" },
-      { codigo: "EST-0008", nombre: "Isabella Ramírez", grado: "10-B" },
-      { codigo: "EST-0009", nombre: "Samuel Flores", grado: "10-B" },
-      { codigo: "EST-0010", nombre: "Mariana Benítez", grado: "10-B" },
-      { codigo: "EST-0011", nombre: "Lucas Morales", grado: "11-A" },
-      { codigo: "EST-0012", nombre: "Victoria Castro", grado: "11-A" },
-      { codigo: "EST-0013", nombre: "David Silva", grado: "11-A" },
-      { codigo: "EST-0014", nombre: "Camila Rojas", grado: "11-A" },
-      { codigo: "EST-0015", nombre: "Gabriel Mendoza", grado: "11-A" },
-      { codigo: "EST-0016", nombre: "Martina Ortiz", grado: "11-B" },
-      { codigo: "EST-0017", nombre: "Nicolás Vargas", grado: "11-B" },
-      { codigo: "EST-0018", nombre: "Antonella Herrera", grado: "11-B" },
-      { codigo: "EST-0019", nombre: "Emiliano Medina", grado: "11-B" },
-      { codigo: "EST-0020", nombre: "Renata Guzmán", grado: "11-B" },
-      { codigo: "EST-0021", nombre: "Joaquín Navarro", grado: "9-A" },
-      { codigo: "EST-0022", nombre: "Catalina Ríos", grado: "9-A" },
-      { codigo: "EST-0023", nombre: "Thiago Romero", grado: "9-A" },
-      { codigo: "EST-0024", nombre: "Elena Castillo", grado: "9-A" },
-      { codigo: "EST-0025", nombre: "Agustín Vega", grado: "9-A" },
-      { codigo: "EST-0026", nombre: "Julieta Silva", grado: "9-B" },
-      { codigo: "EST-0027", nombre: "Felipe Paredes", grado: "9-B" },
-      { codigo: "EST-0028", nombre: "Regina Campos", grado: "9-B" },
-      { codigo: "EST-0029", nombre: "Vicente Acuña", grado: "9-B" },
-      { codigo: "EST-0030", nombre: "Emilia Fuentes", grado: "9-B" },
-      { codigo: "EST-0031", nombre: "Maximiliano Cárdenas", grado: "8-A" },
-      { codigo: "EST-0032", nombre: "Amanda Molina", grado: "8-A" },
-      { codigo: "EST-0033", nombre: "Dante Soto", grado: "8-A" },
-      { codigo: "EST-0034", nombre: "Blanca Espinoza", grado: "8-A" },
-      { codigo: "EST-0035", nombre: "Bruno Lagos", grado: "8-A" }
+      { codigo: "1201214080", nombre: "Lina Fernanda Arevalo Ortiz", grado: "11-A" },
+      { codigo: "1201219776", nombre: "Shaira De Jesus Vecino Ortega", grado: "11-A" },
+      { codigo: "1043982420", nombre: "Mia Valentina Olarte Ospino", grado: "11-A" },
+      { codigo: "1043308088", nombre: "Breyner De Jesus Vasquez Arias", grado: "11-A" },
+      { codigo: "1043308089", nombre: "Alejandro López", grado: "11-A" }
     ];
 
     let estudiantesCache = [];
@@ -130,6 +97,7 @@
     const refEstudiantes = ref(db, 'estudiantes');
     const refAsistencias = ref(db, 'asistencias');
 
+    // Forzar la actualización si la lista cambió o está vacía
     get(refEstudiantes).then((snapshot) => {
       if (!snapshot.exists()) {
         set(refEstudiantes, estudiantesBase);
@@ -152,8 +120,19 @@
       const d = new Date();
       return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}-${String(d.getDate()).padStart(2,"0")}`;
     }
+
     function horaAhora() {
-      return new Date().toLocaleTimeString("es-CO", { hour12: true });
+      const d = new Date();
+      let horas = d.getHours();
+      const minutos = String(d.getMinutes()).padStart(2, "0");
+      const segundos = String(d.getSeconds()).padStart(2, "0");
+      const ampm = horas >= 12 ? 'PM' : 'AM';
+      
+      horas = horas % 12;
+      horas = horas ? horas : 12; 
+      const horaStr = String(horas).padStart(2, "0");
+      
+      return `${horaStr}:${minutos}:${segundos} ${ampm}`;
     }
 
     const inputLector = document.getElementById("inputLector");
@@ -172,7 +151,7 @@
     }
 
     window.agregarEstudiante = function() {
-      const codigo = document.getElementById("codigo").value.trim().toUpperCase();
+      const codigo = document.getElementById("codigo").value.trim(); 
       const nombre = document.getElementById("nombre").value.trim();
       const grado = document.getElementById("grado").value.trim();
 
