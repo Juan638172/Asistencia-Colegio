@@ -16,7 +16,13 @@
       <p style="color: #666; font-size: 14px; margin-bottom: 20px;">Ingrese usuario y contraseña</p>
       
       <input type="text" id="inputUsuario" placeholder="Usuario" autocomplete="off" style="width: 100%; padding: 10px; margin-bottom: 12px; border: 1px solid #ccc; border-radius: 6px; box-sizing: border-box;">
-      <input type="password" id="inputPass" placeholder="Contraseña" style="width: 100%; padding: 10px; margin-bottom: 15px; border: 1px solid #ccc; border-radius: 6px; box-sizing: border-box;">
+      
+      <!-- Campo de Contraseña con el ojito para ver/ocultar -->
+      <div style="position: relative; width: 100%; margin-bottom: 15px;">
+        <input type="password" id="inputPass" placeholder="Contraseña" style="width: 100%; padding: 10px; padding-right: 40px; border: 1px solid #ccc; border-radius: 6px; box-sizing: border-box;">
+        <button type="button" onclick="togglePassword()" style="position: absolute; right: 10px; top: 50%; transform: translateY(-50%); background: none; border: none; cursor: pointer; font-size: 16px;" title="Ver/Ocultar contraseña">👁️</button>
+      </div>
+
       <button type="button" onclick="verificarLogin()" style="width: 100%; padding: 10px; background: #007bff; color: white; border: none; border-radius: 6px; font-weight: bold; cursor: pointer;">Ingresar</button>
       <div id="errorLogin" style="color: red; font-size: 13px; margin-top: 10px;"></div>
     </div>
@@ -47,7 +53,7 @@
     <section class="card">
       <h2>Estudiantes</h2>
       <div class="form-fila">
-        <input id="codigo" placeholder="Código">
+        <input id="codigo" placeholder="Código (ej. 1201214080)">
         <input id="nombre" placeholder="Nombre completo">
         <input id="grado" placeholder="Grado/Curso">
         <button type="button" id="btnAgregar" onclick="agregarEstudiante()">Agregar</button>
@@ -162,7 +168,17 @@
       setTimeout(() => (mensaje.className = "mensaje"), 3500);
     }
 
-    // Función de validación de usuario y contraseña
+    // Mostrar/Ocultar contraseña con el botón del ojito
+    window.togglePassword = function() {
+      const inputPass = document.getElementById("inputPass");
+      if (inputPass.type === "password") {
+        inputPass.type = "text";
+      } else {
+        inputPass.type = "password";
+      }
+    };
+
+    // Validación de Login
     window.verificarLogin = function() {
       const usuario = document.getElementById("inputUsuario").value.trim();
       const pass = document.getElementById("inputPass").value.trim();
@@ -176,7 +192,7 @@
       }
     };
 
-    // Permitir presionar Enter en los campos de login
+    // Permitir ingresar con la tecla Enter
     document.getElementById("inputPass").addEventListener("keydown", (e) => {
       if (e.key === "Enter") verificarLogin();
     });
